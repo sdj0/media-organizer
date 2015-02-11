@@ -1,16 +1,19 @@
-#renamer.rb
+#renamer.rb: main codebase for the media-renamer gem. 
 #Currently configured to only rename JPG and TIF files (using EXIFR to extract metadata)
+	#next major release will include support 
 
-require 'exifr'
-#require 'scrapers/jpg_tif.rb'
-#require 'scrapers/mp3_m4a_wav_flac_aiff.rb'
+
+require 'scrapers/image.rb'
+require 'scrapers/music.rb'
 
 class FileNotValidError < StandardError ; end
 class InvalidArgumentError < StandardError ; end
 class UnsupportedFileTypeError < StandardError ; end
 
+
 class Renamer
-	
+	include Image
+	include Music
 	attr_accessor	:naming_scheme 	# => array of strings and literals used to construct filenames
 
 	def initialize
@@ -32,7 +35,6 @@ class Renamer
 		unless !uri_list.nil? && uri_list.is_a?(Array) 
 			raise InvalidArgumentError
 		end
-
 
 		filename_pairs = {}
 		uri_list.each do |i|
@@ -84,9 +86,11 @@ class Renamer
 		#LOAD EXIF DATA	
 		case File.extname(file)
 		when '.jpg'
-			getJpegData(file)
+			Image::getJpegData(file)
 		when '.tif'
-			getTiffData(file)
+			Image::getTiffData(file)
+		when '.mp3' , '.wav' , '.m4a' , '.flac' , '.aiff'
+			Music::getMusicData(file)
 		else
 			raise UnsupportedFileTypeError, "Error processing #{file}"
 		end
@@ -94,18 +98,6 @@ class Renamer
 	rescue UnsupportedFileTypeError => e
 		puts "Could not process file: Extension #{File.extname(file)} is not supported."
 		puts e.backtrace.inspect
-	end
-
-	def getJpegData(file)
-		meta = EXIFR::JPEG.new(file)
-		return meta.to_hash
-		#!!! Rescue from common file-related and exifr-related errors here
-	end
-
-	def getTiffData(file)
-		meta = EXIFR::TIFF.new(file)	
-		return meta.to_hash
-		#!!! Rescue from common file-related and exifr-related errors here
 	end
 
 
@@ -158,5 +150,7 @@ class Renamer
 		return clean_scheme
 	end
 end
+
+
 
 

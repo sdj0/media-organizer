@@ -37,6 +37,21 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 	end
 
+	#Expect success on each of 3 music files tested. Currently tests for m4a, flac, and mp3
+	def test_GenerateRenameList_GoodMusicFiles
+		old_uris = ['./test/data/Tori Amos - 12 - Little Earthquakes.m4a', './test/data/Too Late to Topologize.mp3', './test/data/cj2009-10-05d01t10.ku100_at37.flac']
+		scheme = ["Test__", :artist_name, "-", :track_name]
+		r = Renamer.new()
+		r.setNamingScheme(scheme)
+
+		new_uris = r.generateRenameList(old_uris)
+		puts "New URIS Hash: #{new_uris}"
+		assert_equal("Test__Tori Amos-Little Earthquakes.m4a", new_uris[old_uris[0]])
+		assert_equal("Test__Zammuto-Too Late To Topologize.mp3", new_uris[old_uris[1]])		
+		assert_equal("Test__Cowboy Junkies-Moonlight Mile (FOH Gain Shift at 3:14) [Engineered For Headphone Use].flac", new_uris[old_uris[2]])		
+	end
+
+
 	#Run rename list with scheme argument specified
 	def test_GenerateRenameList_WithSchemeArg
 		old_uris = ['./test/data/pic1.jpg', './test/data/pic2.jpg']
@@ -50,6 +65,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 	end
 
+	#Test passes as of v0.0.1. Removed from scenario due to filename changes (and need for subsequent reset)
 	def test_Overwrite_GoodJPEGs
 		old_uris = ['./test/data/pic1.jpg', './test/data/pic2.jpg']
 		scheme = ["Test-", :date_time]
@@ -65,6 +81,23 @@ class TestRenamer < MiniTest::Unit::TestCase
 	end
 
 	def test_Overwrite_GoodTIFFs
+		#TBC
+	end
+
+	def test_Overwrite_GoodMP3s
+		old_uris = ['./test/data/Too Late to Topologize.mp3']
+		scheme = ["Test__", :artist_name, "-", :track_name]
+		r = Renamer.new()
+		r.setNamingScheme(scheme)
+
+		new_uris = r.generateRenameList(old_uris)
+		r.overwrite(new_uris)
+		#puts "New URIS Hash: #{new_uris}"
+		assert(File.exists?("./test/data/Test__Zammuto-Too Late To Topologize.mp3"))
+		if File.exists?("./test/data/Test__Zammuto-Too Late To Topologize.mp3")
+			File.rename("./test/data/Test__Zammuto-Too Late To Topologize.mp3", './test/data/Too Late to Topologize.mp3')
+		end
+
 
 	end
 
@@ -78,7 +111,6 @@ class TestRenamer < MiniTest::Unit::TestCase
 		r = Renamer.new()
 		r.setNamingScheme(scheme)
 
-#		assert_raises (FileNotValidError) 
 		new_uris = r.generateRenameList(old_uris)
 		#Check that the valid file was added to the hash
 		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15:16:51 -0500.jpg")
@@ -124,13 +156,14 @@ class TestRenamer < MiniTest::Unit::TestCase
 		assert_equal(new_uris1, {})
 
 		#Test invalid argument type. Should be ignored and return empty hash.
-		#uri_list2 = 25
-		#assert_raises(InvalidArgumentError) {r.generateRenameList(uri_list2)}
+		uri_list2 = 25
+		new_uris2 = r.generateRenameList(uri_list2)
+		assert_equal(new_uris2, nil)
 
 		#Test nil argument
-		#uri_list3 = nil
-		#assert_raises(InvalidArgumentError) {r.generateRenameList(uri_list3)}
-
+		uri_list3 = nil
+		new_uris3 = r.generateRenameList(uri_list3)
+		assert_equal(new_uris3, nil)
 
 	end
 
@@ -145,6 +178,9 @@ class TestRenamer < MiniTest::Unit::TestCase
 		r.setNamingScheme(full_scheme)
 		assert_equal(expected_arr, r.naming_scheme)
 	end
+
+
+
 end
 
 
