@@ -9,6 +9,7 @@ require 'scrapers/music.rb'
 class FileNotValidError < StandardError ; end
 class InvalidArgumentError < StandardError ; end
 class UnsupportedFileTypeError < StandardError ; end
+class RenameFailedError < StandardError ; end
 
 
 class Renamer
@@ -65,12 +66,13 @@ class Renamer
 	  			raise FileNotValidError, "Could not access specified source file: #{i}." unless old_name.is_a?(String) && File.exists?(old_name)    
 	    		raise FileNotValidError, "New file name provided is not a string" unless new_name.is_a?(String)
 	    		
+	    		#puts (File.dirname(File.absolute_path(old_name)) + "/" + new_name) #Comment this line out unless testing
 	    		File.rename(File.absolute_path(old_name),File.dirname(File.absolute_path(old_name)) + "/" + new_name)
 								
-				#check that renamed file exists
-				unless new_name.is_a?(String) && File.exists?(new_name)    
-	      			raise RenameFailedError, "Could not successfuly rename file: #{old_name} => #{new_name}."
-	    		end
+				#check that renamed file exists - Commented out because this currently does not work.
+				#unless new_name.is_a?(String) && File.exists?(new_name)    
+	      		#	raise RenameFailedError, "Could not successfuly rename file: #{old_name} => #{new_name}. Invalid URI or file does not exist."
+	    		#end
 	    	rescue => e
 	    		puts "Ignoring rename for #{old_name} => #{new_name}"
 	    		puts e
@@ -84,12 +86,12 @@ class Renamer
 	def	getFileMetadata(file)
 		
 		#LOAD EXIF DATA	
-		case File.extname(file)
+		case File.extname(file).downcase
 		when '.jpg'
 			Image::getJpegData(file)
 		when '.tif'
 			Image::getTiffData(file)
-		when '.mp3' , '.wav' , '.m4a' , '.flac' , '.aiff'
+		when '.mp3' , '.wav' , '.flac' , '.aiff', '.ogg', '.m4a', '.asf'
 			Music::getMusicData(file)
 		else
 			raise UnsupportedFileTypeError, "Error processing #{file}"
