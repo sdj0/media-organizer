@@ -20,8 +20,8 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 		new_uris = r.generateRenameList(old_uris)
 		#puts "New URIS Hash: #{new_uris}"
-		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15:16:51 -0500.jpg")
-		assert_equal(new_uris[old_uris[1]], "Test-2015-01-14 16:38:06 -0500.jpg")
+		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15_16_51 -0500.jpg")
+		assert_equal(new_uris[old_uris[1]], "Test-2015-01-14 16_38_06 -0500.jpg")
 
 	end
 
@@ -33,7 +33,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 		new_uris = r.generateRenameList(old_uris)
 		#puts "New URIS Hash: #{new_uris}"
-		assert_equal(new_uris[old_uris[0]], "Test-2003-09-03 12:52:43 -0400.tif")
+		assert_equal(new_uris[old_uris[0]], "Test-2003-09-03 12_52_43 -0400.tif")
 
 	end
 
@@ -48,7 +48,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 		puts "New URIS Hash: #{new_uris}"
 		assert_equal("Test__Tori Amos-Little Earthquakes.m4a", new_uris[old_uris[0]])
 		assert_equal("Test__Zammuto-Too Late To Topologize.mp3", new_uris[old_uris[1]])		
-		assert_equal("Test__Cowboy Junkies-Moonlight Mile (FOH Gain Shift at 3:14) [Engineered For Headphone Use].flac", new_uris[old_uris[2]])		
+		assert_equal("Test__Cowboy Junkies-Moonlight Mile (FOH Gain Shift at 3_14) [Engineered For Headphone Use].flac", new_uris[old_uris[2]])		
 	end
 
 
@@ -60,9 +60,32 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 		new_uris = r.generateRenameList(old_uris, scheme: schemearr)
 		#puts "New URIS Hash: #{new_uris}"
-		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15:16:51 -0500.jpg")
-		assert_equal(new_uris[old_uris[1]], "Test-2015-01-14 16:38:06 -0500.jpg")
+		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15_16_51 -0500.jpg")
+		assert_equal(new_uris[old_uris[1]], "Test-2015-01-14 16_38_06 -0500.jpg")
 
+	end
+
+	def test_generateRenameList_hazardous_JPEG
+		old_uris = ['./test/data/pic1.jpg']
+		scheme = ["haz?ardz |n >< here___", :date_time]
+		r = Renamer.new()
+		r.setNamingScheme(scheme)
+
+		new_uris = r.generateRenameList(old_uris)
+		#puts "New URIS Hash: #{new_uris}"
+		assert_equal(new_uris[old_uris[0]], "haz_ardz _n __ here___2015-01-14 15_16_51 -0500.jpg")
+	end
+
+	def test_generateRenameList_reset_subchar
+		old_uris = ['./test/data/pic1.jpg']
+		scheme = ["haz?ardz |n >< here___", :date_time]
+		r = Renamer.new()
+		r.setNamingScheme(scheme)
+
+		r.subchar = "."
+		new_uris = r.generateRenameList(old_uris)
+		#puts "New URIS Hash: #{new_uris}"
+		assert_equal(new_uris[old_uris[0]], "haz.ardz .n .. here___2015-01-14 15.16.51 -0500.jpg")
 	end
 
 	#Test passes as of v0.0.1. Removed from scenario due to filename changes (and need for subsequent reset)
@@ -75,8 +98,8 @@ class TestRenamer < MiniTest::Unit::TestCase
 		new_uris = r.generateRenameList(old_uris)
 		#r.overwrite(new_uris)
 		#puts "New URIS Hash: #{new_uris}"
-		#assert(File.exists("./test/data/Test-2015-01-14 15:16:51 -0500.jpg"))
-		#assert(File.exists("./test/data/Test-2015-01-14 16:38:06 -0500.jpg"))
+		#assert(File.exists("./test/data/Test-2015-01-14 15_16_51 -0500.jpg"))
+		#assert(File.exists("./test/data/Test-2015-01-14 16_38_06 -0500.jpg"))
 
 	end
 
@@ -113,7 +136,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 		new_uris = r.generateRenameList(old_uris)
 		#Check that the valid file was added to the hash
-		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15:16:51 -0500.jpg")
+		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15_16_51 -0500.jpg")
 		#Check that the invalid file was not added to the array (i.e. only the valid file exists in response)
 		assert(new_uris.size == 1)
 	end
@@ -126,7 +149,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 		new_uris = r.generateRenameList(old_uris)
 		#Check that the valid file was added to the hash
-		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15:16:51 -0500.jpg")
+		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15_16_51 -0500.jpg")
 		#Check that the invalid file was not added to the array (i.e. only the valid file exists in response)
 		assert(new_uris.size == 1)
 
@@ -140,7 +163,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 		new_uris = r.generateRenameList(old_uris)
 		#Check that the valid file was added to the hash
-		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15:16:51 -0500.jpg")
+		assert_equal(new_uris[old_uris[0]], "Test-2015-01-14 15_16_51 -0500.jpg")
 		#Check that the invalid file was not added to the array (i.e. only the valid file exists in response)
 		assert_equal(new_uris.size, 1)
 	end

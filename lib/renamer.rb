@@ -11,14 +11,18 @@ class InvalidArgumentError < StandardError ; end
 class UnsupportedFileTypeError < StandardError ; end
 class RenameFailedError < StandardError ; end
 
-
 class Renamer
 	include Image
 	include Music
-	attr_accessor	:naming_scheme 	# => array of strings and literals used to construct filenames
 
-	def initialize
+	DISALLOWED_CHARACTERS = /[\\:\?\*<>\|"\/]/
+
+	attr_accessor	:naming_scheme 	# => array of strings and literals used to construct filenames
+	attr_accessor 	:subchar
+
+	def initialize(args = {})
 		@naming_scheme = ["Renamed-default-"]
+		@subchar = "_"
 	end
 
 	def setNamingScheme(arr = [])
@@ -130,7 +134,7 @@ class Renamer
 			end
 		end
 		#puts "Found file metadata: #{metadata[:date_time]}"
-		return new_string + File.extname(file)	
+		return subHazardousChars(new_string + File.extname(file))
 	rescue FileNotValidError => e
 		puts ("Ignoring file #{file}")
 		puts e 
@@ -151,8 +155,9 @@ class Renamer
 		end
 		return clean_scheme
 	end
+
+	def subHazardousChars(str = "")
+		return str.gsub(DISALLOWED_CHARACTERS, @subchar)
+	end
 end
-
-
-
 
