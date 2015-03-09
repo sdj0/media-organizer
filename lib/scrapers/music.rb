@@ -15,18 +15,18 @@ module Music
 	        properties = fileref.audio_properties
 	        
 	        #load tags into attributes attribute
-	        attributes[:track_name] = tag.title
-	        attributes[:track_number] = tag.track
-	        attributes[:track_genre] = tag.genre
-	        attributes[:track_release_date] = tag.year
-	        attributes[:album_name] = tag.album
-	        attributes[:artist_name] = tag.artist
+	        attributes[:title] = tag.title
+	        attributes[:track] = tag.track
+	        attributes[:genre] = tag.genre
+	        attributes[:year] = tag.year
+	        attributes[:album] = tag.album
+	        attributes[:artist] = tag.artist
 	        attributes[:comment] = tag.comment
 	        	        
-	        attributes[:track_length] = properties.length
-	        attributes[:track_bitrate] = properties.bitrate
-	        attributes[:track_channels] = properties.channels
-	        attributes[:track_sample_rate] = properties.sample_rate
+	        attributes[:length] = properties.length
+	        attributes[:bitrate] = properties.bitrate
+	        attributes[:channels] = properties.channels
+	        attributes[:sample_rate] = properties.sample_rate
 	        
 	      end
 	    end
@@ -54,6 +54,61 @@ module Music
 		return false
 	end
 
+	#
+	#availableMetadata(file, args): returns list of fields available as metadata for the given file.
+	#
+	#==Inputs
+	#===(1) filepath: full/absolute URI of the file to be analyzed. Required input.
+	#===(2) args: optional arguments passed as hash. Set ":include_null" to false to only return populated metadata fields.
+	#
+	def Music.availableMetadata(filepath = "", args = {})
+		attrs = getMusicData(filepath)
+
+		unless args[:include_null] == false
+			attrs.each do |field, value|
+				if value == nil || value == ""
+					attrs.delete(field)
+				end
+			end
+		end
+		return attrs
+	end
+
+	#
+	#writeMetadata(file = "", meta = {}): returns list of fields available as metadata for the given file.
+	#
+	#==Inputs
+	#===(1) filepath: full/absolute URI of the file to be analyzed. Required input.
+	#===(2) meta: metadata to be written, passed as a hash in the format :metadata_field => metadata_value
+	#
+	#==Outputs
+	#Returns true if the file was successfully saved. Note: true status does not necessarily indicate each field was successfully written.
+	#
+	#==Examples
+	#Music.writeMetadata("/absolute/path/to/file.mp3", {:artist => "NewArtistName", :year => "2019"})
+	#
+	def Music.writeMetadata(filepath, meta = {})
+		attributes = {}
+		successflag = false
+	    TagLib::FileRef.open(filepath) do |fileref|
+	      unless fileref.null?
+	        #sign tags to local variables
+	        tag = fileref.tag
+	        properties = fileref.audio_properties	        
+
+	        meta.each do |field, value|
+				if tag.respond_to?(field)
+					tag.send("#{field.to_s}=", value)
+				elsif properties.respond_to?(field)
+					properties.send("#{field.to_s}=", value)
+				end
+            end
+			successflag = fileref.save
+	      end
+	    end	    
+	    return successflag
+
+	end
 
 end
 

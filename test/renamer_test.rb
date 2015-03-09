@@ -40,7 +40,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	#Expect success on each of 3 music files tested. Currently tests for m4a, flac, and mp3
 	def test_GenerateRenameList_GoodMusicFiles
 		old_uris = ['./test/data/Tori Amos - 12 - Little Earthquakes.m4a', './test/data/Too Late to Topologize.mp3', './test/data/cj2009-10-05d01t10.ku100_at37.flac']
-		scheme = ["Test__", :artist_name, "-", :track_name]
+		scheme = ["Test__", :artist, "-", :title]
 		r = Renamer.new()
 		r.setNamingScheme(scheme)
 
@@ -109,7 +109,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 	def test_Overwrite_GoodMP3s
 		old_uris = ['./test/data/Too Late to Topologize.mp3']
-		scheme = ["Test__", :artist_name, "-", :track_name]
+		scheme = ["Test__", :artist, "-", :title]
 		r = Renamer.new()
 		r.setNamingScheme(scheme)
 
@@ -120,6 +120,16 @@ class TestRenamer < MiniTest::Unit::TestCase
 		#if File.exists?("./test/data/Test__Zammuto-Too Late To Topologize.mp3")
 		#	File.rename("./test/data/Test__Zammuto-Too Late To Topologize.mp3", './test/data/Too Late to Topologize.mp3')
 		#end
+
+
+	end
+
+	def test_write_music_metadata
+		flac = "/mnt/hgfs/Repositories/media-organizer/test/data/meta_overwrite/Denali - The Instinct - 05 - Do Something.flac"
+		mp3 = "/mnt/hgfs/Repositories/media-organizer/test/data/meta_overwrite/Too Late to Topologize.mp3"
+		wav = "/mnt/hgfs/Repositories/media-organizer/test/data/meta_overwrite/09-Infinity.wav"
+		m4a = "/mnt/hgfs/Repositories/media-organizer/test/data/meta_overwrite/Tori Amos - 12 - Little Earthquakes.m4a"
+
 
 
 	end
