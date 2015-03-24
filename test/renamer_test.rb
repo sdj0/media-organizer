@@ -6,7 +6,7 @@ require 'renamer'
 class TestRenamer < MiniTest::Unit::TestCase
 
 	def test_SetNamingScheme
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		scheme = ["Test-"]
 		r.setNamingScheme(scheme)
 		assert_equal(scheme, r.naming_scheme)
@@ -15,7 +15,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_GenerateRenameList_GoodJPEGs
 		old_uris = ['./test/data/pic1.jpg', './test/data/pic2.jpg']
 		scheme = ["Test-", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -28,7 +28,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_GenerateRenameList_GoodTIFFs
 		old_uris = ['./test/data/hs-2003-24-a-full_tif.tif']
 		scheme = ["Test-", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -41,7 +41,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_GenerateRenameList_GoodMusicFiles
 		old_uris = ['./test/data/Tori Amos - 12 - Little Earthquakes.m4a', './test/data/Too Late to Topologize.mp3', './test/data/cj2009-10-05d01t10.ku100_at37.flac']
 		scheme = ["Test__", :artist, "-", :title]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -56,7 +56,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_GenerateRenameList_WithSchemeArg
 		old_uris = ['./test/data/pic1.jpg', './test/data/pic2.jpg']
 		schemearr = ["Test-", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 
 		new_uris = r.generateRenameList(old_uris, scheme: schemearr)
 		#puts "New URIS Hash: #{new_uris}"
@@ -68,7 +68,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_generateRenameList_hazardous_JPEG
 		old_uris = ['./test/data/pic1.jpg']
 		scheme = ["haz?ardz |n >< here___", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -79,7 +79,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_generateRenameList_reset_subchar
 		old_uris = ['./test/data/pic1.jpg']
 		scheme = ["haz?ardz |n >< here___", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		r.subchar = "."
@@ -92,7 +92,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_Overwrite_GoodJPEGs
 		old_uris = ['./test/data/pic1.jpg', './test/data/pic2.jpg']
 		scheme = ["Test-", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -110,7 +110,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_Overwrite_GoodMP3s
 		old_uris = ['./test/data/Too Late to Topologize.mp3']
 		scheme = ["Test__", :artist, "-", :title]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -141,7 +141,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_GenerateRenameList_IgnoreInvalidURIs
 		old_uris = ['./test/data/pic1.jpg','./test/data/bad_data/asdfasdfasdf.ghjk']
 		scheme = ["Test-", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -154,7 +154,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_GenerateRenameList_IgnoreInvalidFiletypes
 		old_uris = ['./test/data/pic1.jpg','./test/data/bad_data/taglib-1.8.tar.gz']
 		scheme = ["Test-", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -168,7 +168,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	def test_GenerateRenameList_MissingMetadata
 		old_uris = ['./test/data/pic1.jpg','./test/data/bad_data/pic1_nometadata_comment.jpg']
 		scheme = ["Test-", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		new_uris = r.generateRenameList(old_uris)
@@ -180,7 +180,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 
 	def test_GenerateRenameList_EmptyOrInvalidList
 		scheme = ["Test-", :date_time]
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		r.setNamingScheme(scheme)
 
 		#Test empy URI list. Should return empty hash
@@ -201,7 +201,7 @@ class TestRenamer < MiniTest::Unit::TestCase
 	end
 
 	def test_GenerateRenamelist_InvalidSchemeElements
-		r = Renamer.new()
+		r = MediaOrganizer::Renamer.new()
 		bad_arr = ['bad']
 		bad_hash = {'bad' => 'not good'}
 		full_scheme = ["Test-", :asdf, 25, bad_arr, bad_hash]

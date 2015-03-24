@@ -3,7 +3,8 @@
 require 'renamer.rb'
 require 'filescanner.rb'
 
-class MediaRenamer < Renamer
-	
+module MediaOrganizer
+	VERSION = "0.1.2"	
+
 end
 
