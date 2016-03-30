@@ -55,9 +55,9 @@ files = filescanner.open './Disneyland'
 files << filescanner.open './Disneyland - Phone Pics'
 
 #Setup renamer and overwrite files
-renamer.set_naming_scheme(["Disneyland Vacation - ", :date_time]) # => ["Disneyland Vacation - ", :date_time] 
-new_files = renamer.generate(files) # => {"./Disneyland/863.JPG"=>"Disneyland Vacation - 2009-08-15 12_13_32 -0500.JPG", [...]
-renamer.overwrite(new_files) #=> {"./Disneyland/863.JPG"=>"Disneyland Vacation - 2009-08-15 12_13_32 -0500.JPG", [...]
+renamer.set_naming_scheme(["Disneyland Vacation - ", :date_time]) 
+new_files = renamer.generate(files) 
+renamer.overwrite(new_files)
 
 ```
 
