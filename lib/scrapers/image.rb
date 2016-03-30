@@ -2,7 +2,7 @@
 #
 # The Image module has support methods for validating and loading
 # image files, providing image metadata in a hash format. Key API
-# methods are `age.get_jpeg_data(file)`, `get_tiff_data(file)`, 
+# methods are `age.get_jpeg_data(file)`, `get_tiff_data(file)`,
 # and `image?(uri)`
 #
 
@@ -13,14 +13,14 @@ module MediaOrganizer
     SUPPORTED_FILETYPES = %w(.jpg .tif).freeze
 
     def self.get_jpeg_data(file)
-      if(self.image?(file))
+      if image?(file)
         meta = EXIFR::JPEG.new(file)
         meta.to_hash
       end
     end
 
     def self.get_tiff_data(file)
-      if(self.image?(file))
+      if image?(file)
         meta = EXIFR::TIFF.new(file)
         meta.to_hash
       end

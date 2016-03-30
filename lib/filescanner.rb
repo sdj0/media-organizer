@@ -1,6 +1,6 @@
 #
-# The Filescanner class scans directory trees for 
-# media files. The key API method for Filescaner is #open(String, Hash) which 
+# The Filescanner class scans directory trees for
+# media files. The key API method for Filescaner is #open(String, Hash) which
 # loads each supported file from a directory tree into an array.
 #
 
