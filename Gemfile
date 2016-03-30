@@ -5,7 +5,7 @@ source 'https://rubygems.org'
 # dnf install taglib
 # brew install taglib
 # apt-get install taglib
-gem 'taglib-ruby', '~>0.7.1'
+gem 'taglib-ruby', '>0.6.0'
 
 # exifr: file MIME type detector
 gem 'exifr', '~>1.2.4'
