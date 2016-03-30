@@ -1,6 +1,9 @@
+#==Image
 #
-# image.rb: defines the class Image, which validates and loads
-# image files, providing image metadata in a hash format.
+# The Image module has support methods for validating and loading
+# image files, providing image metadata in a hash format. Key API
+# methods are `age.get_jpeg_data(file)`, `get_tiff_data(file)`, 
+# and `image?(uri)`
 #
 
 require 'exifr'
@@ -10,15 +13,17 @@ module MediaOrganizer
     SUPPORTED_FILETYPES = %w(.jpg .tif).freeze
 
     def self.get_jpeg_data(file)
-      meta = EXIFR::JPEG.new(file)
-      meta.to_hash
-      # !!! Rescue from common file-related and exifr-related errors here
+      if(self.image?(file))
+        meta = EXIFR::JPEG.new(file)
+        meta.to_hash
+      end
     end
 
     def self.get_tiff_data(file)
-      meta = EXIFR::TIFF.new(file)
-      meta.to_hash
-      # !!! Rescue from common file-related and exifr-related errors here
+      if(self.image?(file))
+        meta = EXIFR::TIFF.new(file)
+        meta.to_hash
+      end
     end
 
     def self.supported_filetypes
@@ -35,11 +40,6 @@ module MediaOrganizer
       else
         return false
       end
-
-    rescue FileNotFoundError => e
-      puts e.message
-      puts e.backtrace.inspect
-      return false
     end
   end
 end

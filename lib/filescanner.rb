@@ -1,5 +1,7 @@
 #
-# filescanner.rb: defines the class Filescanner, which scans directory trees for media files
+# The Filescanner class scans directory trees for 
+# media files. The key API method for Filescaner is #open(String, Hash) which 
+# loads each supported file from a directory tree into an array.
 #
 
 require 'scrapers/image.rb'
@@ -43,6 +45,7 @@ module MediaOrganizer
     # Filescanner.open("/absolute/path/for/top/of/directory/tree")
     #
     def open(uri = '', args = {})
+      @source_list = []
       include_images = true unless args[:image] == false
       include_music = true unless args[:music] == false
 
