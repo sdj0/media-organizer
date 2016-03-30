@@ -1,15 +1,11 @@
 #
-#filescanner.rb: defines the class Filescanner, which scans directory trees for media files
+# filescanner.rb: defines the class Filescanner, which scans directory trees for media files
 #
 
 require 'scrapers/image.rb'
 require 'scrapers/music.rb'
 
-
 module MediaOrganizer
-
-  class FileNotValidError < StandardError ; end
-
   class Filescanner
     include Image
     include Music
@@ -17,100 +13,132 @@ module MediaOrganizer
     attr_reader :root_nodes
     attr_accessor :source_list
 
-
-    def initialize()
+    def initialize
       @root_nodes = []
       @source_list = []
     end
 
     #
-    #Filescanner.open(String, {}): scans directory tree for media files, starting at String specified in first argument.
+    # Filescanner.open(String, {}): scans directory tree for media files,
+    # starting at String specified in first argument.
     #
     #==Inputs
     #===Required
-    #(1) String: String containing the URI of the top of the directory tree to scan
+    # (1) String: String containing the URI of the top of the directory tree to scan
     #
     #===Optional
-    #(2) Arguments Hash:
-    #*:mode => (:single) -- if set to :single, only the given URI will be scanned. Subdirectories will be ignored. 
-    #*:music => (true, false) -- if true, music files will be included in the scan. Set to false to exclude music files. Defaults to true
-    #*:image => (true, false) -- if true, image files will be included in the scan. Set to false to exclude image files. Defaults to true
+    # (2) Arguments Hash:
+    # *:mode => (:single) -- if set to :single, only the given URI will be scanned.
+    # Subdirectories will be ignored.
+    # *:music => (true, false) -- if true, music files will be included in the scan.
+    #  Set to false to exclude music files. Defaults to true
+    # *:image => (true, false) -- if true, image files will be included in the scan.
+    #  Set to false to exclude image files. Defaults to true
     #
     #==Outputs
-    #Returns array of strings, where each string is a file URI for a music or image file. 
+    # Returns array of strings, where each string is a file URI for a music or image file.
     #
     #
     #==Usage Example
-    #Filescanner.open("/absolute/path/for/top/of/directory/tree")
+    # Filescanner.open("/absolute/path/for/top/of/directory/tree")
     #
-    def open(uri = "", args = {})
-      unless !uri.nil? && uri.is_a?(String) && (File.directory?(uri) || File.exists?(uri))   
-        raise FileNotFoundError, "Directory given (#{uri}) could not be accessed."
-      end
-      
-      include_images = true unless args[:image] == false     
-      include_music = true unless args[:music] == false     
-      files = []
-      if args[:mode] == :single
-        files = Dir.glob("#{uri}/*")
-      else
-        files = Dir.glob("#{uri}/**/*")    
-      end
-      
-      #add all files found to @source_list, if they are music files
+    def open(uri = '', args = {})
+      include_images = true unless args[:image] == false
+      include_music = true unless args[:music] == false
+
+      files = load_files(uri, args[:mode])
       files.each do |f|
-        if (Music.is_music?(f) && include_music) || (Image.is_image?(f) && include_images)
+        if (Music.music?(f) && include_music) || (Image.image?(f) && include_images)
           @source_list << f
         end
       end
 
       return @source_list
 
-    rescue FileNotFoundError => e
-      puts e.message
-      puts e.backtrace.inspect
+    rescue StandardError => e
+      puts "Warning: #{e.message}"
       return false
     end
 
-    #alternative run mode. Add multiple "root" directories to scan at once
-    def addRoot(dir_uri)
-        unless !dir_uri.nil? && dir_uri.is_a?(String) && File.directory?(dir_uri)   
-          raise FileNotFoundError, "Directory given (#{dir_uri}) could not be accessed."
-        end
-        @root_nodes << dir_uri
-    rescue FileNotFoundError => e
-      puts e.message
-      puts e.backtrace.inspect
+    # alternative run mode. Add multiple "root" directories to scan at once
+    def add_root(dir_uri)
+      validate_uri(dir_uri)
+      @root_nodes << dir_uri
+    rescue StandardError => e
+      puts "Warning: #{e.message}"
       return false
     end
 
-    #<<(): synonym for addRoot(). Also a deformed emoticon.
-  #  def << (dir_uri) addRoot(dir_uri)  end
+    # <<(): synonym for add_root(). Also a deformed emoticon.
+    #  def << (dir_uri) add_root(dir_uri)  end
 
     #
-    #multiscan(): scans multiple directories added to @root_nodes using the addRoot() method.
+    # multiscan(): scans multiple directories added to @root_nodes using the add_root() method.
     #
     #==Inputs
     #===Required
-    #none  
+    # none
     #
     #===Optional
-    #(1) Arguments Hash:
-    #*:mode => (:single, :multiple) 
-    #*:music => (true, false) -- if true, music files will be included in the scan. Set to false to exclude music files. Defaults to true
-    #*:image => (true, false) -- if true, image files will be included in the scan. Set to false to exclude image files. Defaults to true
+    # (1) Arguments Hash:
+    # *:mode => (:single, :multiple)
+    # *:music => (true, false) -- if true, music files will be included in the scan.
+    #  Set to false to exclude music files. Defaults to true
+    # *:image => (true, false) -- if true, image files will be included in the scan.
+    #  Set to false to exclude image files. Defaults to true
     #
     #==Outputs
-    #Array of strings, where each string is a file URI for a music or image file.
+    # Array of strings, where each string is a file URI for a music or image file.
     #
     def multiscan(args = {})
       @root_nodes.each do |uri|
         open(uri, args)
       end
-      return @source_list
+      @source_list
     end
-    
+
+    private
+
+    # validate_uri(): support method for validating a file system URI.
+    #
+    #==Inputs
+    #===Required
+    # (1) String: String containing the URI to validate.
+    #
+    #===Optional
+    # none
+    #==Outputs
+    # Returns true if the URI is valid. Raises a StandardError exception if it is not.
+    #
+    def validate_uri(uri)
+      unless !uri.nil? && uri.is_a?(String) && (File.directory?(uri) || File.exist?(uri))
+        raise StandardError, "Directory given (#{uri}) could not be accessed."
+      end
+      true
+    end
+
+    #
+    # load_files(): given a URI and optional mode, scans and loads every file in
+    # the specifid folder or tree.
+    #
+    #==Inputs
+    #===Required
+    # (1) String: String containing the URI to validate.
+    #
+    #===Optional
+    # (1) Arguments Hash:
+    # *:mode => (:single, :multiple) - :single loads a folder, :multiple loads a full tree.
+    #
+    #==Outputs
+    # Array of strings, where each string is a file URI for a music or image file.
+    #
+    def load_files(uri, mode)
+      validate_uri(uri)
+      if !mode.nil? && mode == :single
+        Dir.glob("#{uri}/*")
+      else
+        Dir.glob("#{uri}/**/*")
+      end
+    end
   end
-
 end
-
