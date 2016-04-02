@@ -39,10 +39,13 @@ module MediaOrganizer
     #
     #==Outputs
     # Returns array of strings, where each string is a file URI for a music or image file.
+    # Invalid files and directories will be ignored (i.e. will not be included in
+    # the returned array)
     #
     #
     #==Usage Example
-    # Filescanner.open("/absolute/path/for/top/of/directory/tree")
+    # filescanner = MediaOrganizer::Filescanner.new
+    # filescanner.open("/absolute/path/for/top/of/directory/tree")
     #
     def open(uri = '', args = {})
       @source_list = []

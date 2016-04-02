@@ -3,12 +3,14 @@
 # next major release will include support
 require 'scrapers/image.rb'
 require 'scrapers/music.rb'
+require 'fileutils'
 
 module MediaOrganizer
   class FileNotValidError < StandardError; end
   class InvalidArgumentError < StandardError; end
   class UnsupportedFileTypeError < StandardError; end
   class RenameFailedError < StandardError; end
+  class EmptyMetadataError < StandardError; end
 
   # Renamer: primary class to use for renaming files. Allows renaming of a given list of files to a user-defined scheme based on each file's metadata.
   #
@@ -77,44 +79,75 @@ module MediaOrganizer
       filename_pairs = {}
       uri_list.each do |i|
         new_string = handle_file(i, scheme)
-        # If this is a valid file path, add it to the filename_pairs
-        # puts "New file rename added: #{new_string}"
         filename_pairs[i] = new_string if !new_string.nil? && new_string != ''
       end
 
       return filename_pairs
 
     rescue InvalidArgumentError => arg_e
-      puts arg_e
-      puts 'Invalid arguments provided. Expected: uri_list = [], args = {}'
+      puts "#{arg_e}: Invalid arguments provided. Expected: uri_list = [], args = {}\n"
     rescue => e
       puts e.message
       puts e.backtrace.inspect
     end
 
-    # Renamer.overwrite(): Writes new file names based upon mapping provided in hash argument. NOTE: this will create changes to file names!
+    # Renamer.overwrite(): Writes new file names (in place) based upon mapping provided in the hash
+    # argument. NOTE: this will alter the file system!
     #
     #===Inputs
-    # 		1. Hash containing mappings between old filenames (full URI) and new filenames (full URI). Example: {"/path/to/oldfile.jpg" => "/path/to/newfile.jpg"}
+    # 		1. Hash containing mappings between old filenames (full URI) and new filenames (full URI).
+    # Example: {"/path/to/oldfile.jpg" => "/path/to/newfile.jpg"}
     #
     #===Outputs
     # none (file names are overwritten)
     def overwrite(renames_hash = {})
       renames_hash.each do |old_name, new_name|
         begin
-          # error/integrity checking on old_name and new_name
-          raise FileNotValidError, "Could not access specified source file: #{i}." unless old_name.is_a?(String) && File.exist?(old_name)
-          raise FileNotValidError, 'New file name provided is not a string' unless new_name.is_a?(String)
-
-          # puts (File.dirname(File.absolute_path(old_name)) + "/" + new_name) #Comment this line out unless testing
-          File.rename(File.absolute_path(old_name), File.dirname(File.absolute_path(old_name)) + '/' + new_name)
-
-        # check that renamed File.exist? - Commented out because this currently does not work.
-        # unless new_name.is_a?(String) && File.exist?(new_name)
-        #	raise RenameFailedError, "Could not successfuly rename file: #{old_name} => #{new_name}. Invalid URI or file does not exist."
-        # end
+          unless old_name.is_a?(String) && File.exist?(old_name)
+            raise FileNotValidError, "Could not access specified source file: #{i}."
+          end
+          unless new_name.is_a?(String)
+            raise FileNotValidError, 'New file name provided is not a string'
+          end
+          # TODO: Ignore dir names embedded in new_name
+          path = File.dirname(File.absolute_path(old_name)) + '/'
+          new_name = dedupe_file(path, new_name)
+          File.rename(File.absolute_path(old_name), File.absolute_path(old_name) + '/' + new_name)
         rescue => e
-          puts "Ignoring rename for #{old_name} => #{new_name}"
+          puts "#{e}: Ignoring rename for #{old_name} => #{new_name}\n"
+        end
+      end
+    end
+
+    # Renamer.backup(): Writes new file names into a specified backup directory,
+    # based upon mapping provided in the hash argument. NOTE: this will alter the file system!
+    #
+    #===Inputs
+    #     1. Hash containing mappings between old filenames (full URI) and new filenames (full URI).
+    # Example: {"/path/to/oldfile.jpg" => "newfilename.jpg"}
+    #     2. Top level URI where backup files will be written
+    #
+    #===Outputs and Postconditions
+    # New files are created in the directory provided as the second argument
+    def backup(renames_hash = {}, uri)
+      unless !uri.nil? && uri.is_a?(String) && File.directory?(uri) && File.writable?(uri)
+        raise StandardError, 'URI argument must be a string containing a valid and accesible'
+      end
+      uri = File.absolute_path(uri)
+
+      renames_hash.each do |old_name, new_name|
+        begin
+          unless old_name.is_a?(String) && File.exist?(old_name)
+            raise FileNotValidError, "Could not access specified source file: #{i}."
+          end
+          unless new_name.is_a?(String)
+            raise FileNotValidError, 'New file name provided is not a string'
+          end
+          path = File.absolute_path(uri) + '/'
+          new_name = dedupe_file(path, new_name)
+          FileUtils.cp(File.absolute_path(old_name), path + new_name)
+        rescue => e
+          puts "#{e}: Ignoring rename for #{old_name} => #{new_name}\n"
         end
       end
     end
@@ -137,45 +170,51 @@ module MediaOrganizer
       when '.mp3', '.wav', '.flac', '.aiff', '.ogg', '.m4a', '.asf'
         Music.get_music_data(file)
       else
-        raise UnsupportedFileTypeError, "Error processing #{file}"
+        raise UnsupportedFileTypeError, "Could not process file: Extension #{File.extname(file)} is not supported."
       end
-    rescue UnsupportedFileTypeError => e
-      puts "Could not process file: Extension #{File.extname(file)} is not supported."
-      puts e.backtrace.inspect
     end
 
     private
 
     def handle_file(file, scheme)
-      # Check file is real
+      scheme ||= @naming_scheme
       unless file.is_a?(String) && File.exist?(file)
-        raise FileNotValidError, "Could not access specified file file: #{file}."
+        raise FileNotValidError, "Could not access specified file: #{file}."
       end
-      metadata = get_metadata(File.absolute_path(file))
-      new_string = ''
-      scheme.each do |j|
-        if j.is_a?(String) then new_string += j
-        elsif j.is_a?(Symbol)
-          begin
-            raise EmptyMetadataError if metadata[j].nil?
-            new_string += metadata[j].to_s
-          rescue => e
-            puts "Could not get string for metadata tag provided in scheme: #{j} for file #{file}."
-            puts "Ignoring file #{file}"
-            return nil
-          end
-        end
-      end
-      return sub_hazardous_chars(new_string + File.extname(file))
+      new_filename = schemify(file, scheme)
+      return new_filename + File.extname(file)
 
-    rescue FileNotValidError => e
-      puts "Ignoring file #{file}"
-      puts e
+    rescue FileNotValidError, UnsupportedFileTypeError => file_e
+      puts "#{file_e}: #{file_e.message}\n"
       return nil
     rescue => e
       puts e.message
       puts e.backtrace.inspect
       return nil
+    end
+
+    def schemify(file, scheme)
+      schemed_file = ''
+      metadata = get_metadata(File.absolute_path(file))
+      scheme.each do |j|
+        schemed_file += get_from_meta(metadata, j)
+      end
+      schemed_file
+    end
+
+    def get_from_meta(metadata, j)
+      if j.is_a?(String)
+        return sub_hazardous_chars(j)
+      elsif j.is_a?(Hash)
+        #TODO: Add directory handling here
+      elsif j.is_a?(Symbol)
+        if metadata[j].is_a?(String) || metadata[j].respond_to?(:to_s)
+          return sub_hazardous_chars(metadata[j].to_s)
+        else
+          puts "Warning: could not get string for metadata tag provided in scheme: #{j}.\n"
+          return sub_hazardous_chars("Unknown #{j.to_s.capitalize}")
+        end
+      end
     end
 
     def set_scheme(input_arr = [])
@@ -188,6 +227,16 @@ module MediaOrganizer
 
     def sub_hazardous_chars(str = '')
       str.gsub(DISALLOWED_CHARACTERS, @subchar)
+    end
+
+    def dedupe_file(path, new_name)
+      path += '/' unless !path.nil? && path[-1, 1] == '/'
+      i = 0
+      test_name = new_name
+      while File.exist?(path + test_name)
+        test_name = new_name.sub(/.[^.]+\z/, '') + " (#{i += 1})" + File.extname(new_name)
+      end
+      test_name
     end
   end
 end

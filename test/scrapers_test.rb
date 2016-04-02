@@ -24,13 +24,13 @@ class TestMusic < MiniTest::Test
     # flac = "./test/data/meta_overwrite/Denali - The Instinct - 05 - Do Something.flac"
     # wav = './test/data/meta_overwrite/09-Infinity.wav'
 
-    mp3meta = MediaOrganizer::Music.availableMetadata(mp3)
+    mp3meta = MediaOrganizer::Music.available_metadata(mp3)
     assert_equal('Zammuto', mp3meta[:artist])
-    m4ameta = MediaOrganizer::Music.availableMetadata(m4a)
+    m4ameta = MediaOrganizer::Music.available_metadata(m4a)
     assert_equal('Tori Amos', m4ameta[:artist])
-    # flacmeta = MediaOrganizer::Music.availableMetadata(flac)
+    # flacmeta = MediaOrganizer::Music.available_metadata(flac)
     # assert_equal("Denali", flacmeta[:artist])
-    # wavmeta = MediaOrganizer::Music.availableMetadata(wav)
+    # wavmeta = MediaOrganizer::Music.available_metadata(wav)
     # assert_equal('The xx', wavmeta[:artist])
   end
 
@@ -38,12 +38,12 @@ class TestMusic < MiniTest::Test
     mp3 = './test/data/meta_overwrite/Too Late to Topologize.mp3'
     m4a = './test/data/meta_overwrite/Tori Amos - 12 - Little Earthquakes.m4a'
 
-    assert(MediaOrganizer::Music.writeMetadata(mp3, artist: 'Test', year: 2019))
-    mp3new = MediaOrganizer::Music.availableMetadata(mp3)
+    assert(MediaOrganizer::Music.write_metadata(mp3, artist: 'Test', year: 2019))
+    mp3new = MediaOrganizer::Music.available_metadata(mp3)
     assert_equal(2019, mp3new[:year])
     assert_equal('Test', mp3new[:artist])
 
-    assert(MediaOrganizer::Music.writeMetadata(mp3, artist: 'Zammuto', year: 2011))
+    assert(MediaOrganizer::Music.write_metadata(mp3, artist: 'Zammuto', year: 2011))
   end
 end
 

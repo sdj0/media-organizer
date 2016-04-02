@@ -40,7 +40,6 @@ class TestRenamer < MiniTest::Unit::TestCase
     r.set_naming_scheme(scheme)
 
     new_uris = r.generate(old_uris)
-    puts "New URIS Hash: #{new_uris}"
     assert_equal('Test__Tori Amos-Little Earthquakes.m4a', new_uris[old_uris[0]])
     assert_equal('Test__Zammuto-Too Late To Topologize.mp3', new_uris[old_uris[1]])
     assert_equal('Test__Cowboy Junkies-Moonlight Mile (FOH Gain Shift at 3_14) [Engineered For Headphone Use].flac', new_uris[old_uris[2]])
@@ -58,7 +57,7 @@ class TestRenamer < MiniTest::Unit::TestCase
     assert(new_uris[old_uris[1]] =~ /\ATest-2015-01-14 16_38_06 [+-][0-9]{4}.jpg/)
   end
 
-  def test_generate_hazardous_JPEG
+  def test_generate_hazardous_jpeg
     old_uris = ['./test/data/pic1.jpg']
     scheme = ['haz?ardz |n >< here___', :date_time]
     r = MediaOrganizer::Renamer.new
@@ -66,7 +65,8 @@ class TestRenamer < MiniTest::Unit::TestCase
 
     new_uris = r.generate(old_uris)
     # puts "New URIS Hash: #{new_uris}"
-    assert(new_uris[old_uris[0]] =~ /\Ahaz_ardz _n __ here___2015-01-14 15_16_51 [+-][0-9]{4}.jpg/)
+    assert(new_uris[old_uris[0]] =~ /\Ahaz_ardz _n __ here___2015-01-14 15_16_51 [+-][0-9]{4}.jpg/,
+           "Output mismatch: #{new_uris[old_uris[0]]}")
   end
 
   def test_generate_reset_subchar
@@ -78,7 +78,8 @@ class TestRenamer < MiniTest::Unit::TestCase
     r.subchar = '-'
     new_uris = r.generate(old_uris)
     # puts "New URIS Hash: #{new_uris}"
-    assert(new_uris[old_uris[0]] =~ /\Ahaz-ardz -n -- here___2015-01-14 15-16-51 [+-][0-9]{4}.jpg/, "Output mismatch: #{new_uris[old_uris[0]]}")
+    assert(new_uris[old_uris[0]] =~ /\Ahaz-ardz -n -- here___2015-01-14 15-16-51 [+-][0-9]{4}.jpg/,
+           "Output mismatch: #{new_uris[old_uris[0]]}")
   end
 
   # Test passes as of v0.0.1. Removed from scenario due to filename changes (and need for subsequent reset)
@@ -112,6 +113,43 @@ class TestRenamer < MiniTest::Unit::TestCase
     # if File.exist?("./test/data/Test__Zammuto-Too Late To Topologize.mp3")
     #	File.rename("./test/data/Test__Zammuto-Too Late To Topologize.mp3", './test/data/Too Late to Topologize.mp3')
     # end
+  end
+
+  def test_backup_good_mp3s_with_collision_avoidance
+    #fs = MediaOrganizer::Filescanner.new
+    #r = MediaOrganizer::Renamer.new
+
+    # r.set_naming_scheme(['BAK - ', :artist, " - ", :title])
+    # songs_to_backup = r.generate(fs.open('./test/data/backup/backup_src'))
+    # r.backup(songs_to_backup, './test/data/backup/backup_dest')
+
+    # assert(File.exist?('./test/data/backup/backup_dest/BAK -  -  (8).mp3'))
+    # assert(File.exist?('./test/data/backup/backup_dest/BAK - Battles - Atlas.mp3'))
+  end
+
+  def test_unknown_artist_and_title_labeling
+    # TODO: complete the code to make these tests work
+    nameless_songs = ['./test/data/no_tags/1455.mp3', './test/data/no_tags/4160.mp3']
+    meta = MediaOrganizer::Music.available_metadata(nameless_songs[0])
+
+    assert(!meta.key?(:artist))
+    assert(!meta.key?(:title))
+
+    # r = MediaOrganizer::Renamer.new
+    # r.overwrite(r.generate(nameless_song))
+    # assert(File.exist?('./test/data/no_tags/Unknown Artist - Unknown Title.mp3'))
+    # assert(File.exist?('./test/data/no_tags/Unknown Artist - Unknown Title (2).mp3'))
+  end
+
+  def test_generate_directory_structure
+    songs = []
+    f = MediaOrganizer::Filescanner.new
+    r = MediaOrganizer::Renamer.new(naming_scheme: [{ directory: :artist }, { directory: :album }, :title])
+    uris = r.generate(songs)
+
+    # assert(File.directory?("./"))
+    # assert(File.directory?("./"))
+    # assert(File.directory?("./"))
   end
 
   # ##########Failure modes###########
@@ -187,5 +225,21 @@ class TestRenamer < MiniTest::Unit::TestCase
     expected_arr = ['Test-', :asdf]
     r.set_naming_scheme(full_scheme)
     assert_equal(expected_arr, r.naming_scheme)
+  end
+
+  def test_backup_invalid_uris
+    r = MediaOrganizer::Renamer.new
+    assert_raises(StandardError) { r.backup({ 'shouldnt' => 'matter' }, './nonexistantdirectory') }
+    assert_raises(StandardError) { r.backup({ 'shouldnt' => 'matter' }, './test/data/protected_directory') }
+    assert_raises(StandardError) { r.backup({ 'shouldnt' => 'matter' }, nil) }
+  end
+
+  # ##########Support Methods###########
+
+  private
+
+  def cleanup_directory_tree(dir)
+    #empty backup_dest folder
+    #empty 
   end
 end

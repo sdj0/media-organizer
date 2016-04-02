@@ -57,13 +57,13 @@ module MediaOrganizer
     end
 
     #
-    # availableMetadata(file, args): returns list of fields available as metadata for the given file.
+    # available_metadata(file, args): returns list of fields available as metadata for the given file.
     #
     #===Inputs
     # 	*(1) filepath: full/absolute URI of the file to be analyzed. Required input.
     # 	*(2) args: optional arguments passed as hash. Set ":include_null" to false to only return populated metadata fields.
     #
-    def self.availableMetadata(filepath = '', args = {})
+    def self.available_metadata(filepath = '', args = {})
       attrs = get_music_data(filepath)
 
       unless args[:include_null] == false
@@ -75,7 +75,7 @@ module MediaOrganizer
     end
 
     #
-    # writeMetadata(file = "", meta = {}): returns list of fields available as metadata for the given file.
+    # write_metadata(file = "", meta = {}): returns list of fields available as metadata for the given file.
     #
     #===Inputs
     # 	*(1) filepath: full/absolute URI of the file to be analyzed. Required input.
@@ -85,9 +85,9 @@ module MediaOrganizer
     # Returns true if the file was successfully saved. Note: true status does not necessarily indicate each field was successfully written.
     #
     #===Examples
-    # Music.writeMetadata("/absolute/path/to/file.mp3", {:artist => "NewArtistName", :year => "2019"})
+    # Music.write_metadata("/absolute/path/to/file.mp3", {:artist => "NewArtistName", :year => "2019"})
     #
-    def self.writeMetadata(filepath, meta = {})
+    def self.write_metadata(filepath, meta = {})
       attributes = {}
       successflag = false
       TagLib::FileRef.open(filepath) do |fileref|

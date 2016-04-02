@@ -27,7 +27,7 @@ DEPENDENCIES
   minitest (~> 5.8.4)
   rake (~> 11.1.2)
   rubocop (~> 0.39.0)
-  taglib-ruby (~> 0.7.1)
+  taglib-ruby (> 0.6.0)
 
 BUNDLED WITH
    1.11.2

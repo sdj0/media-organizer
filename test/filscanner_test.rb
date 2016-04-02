@@ -53,6 +53,8 @@ class TestFilescanner < MiniTest::Test
   end
 
   def test_dir_invalid
+    f = MediaOrganizer::Filescanner.new
+    assert(f.open('./24u89gihrjnkf/nonexistantdir') == false)
   end
 
   def test_add_root_multiscan_mode
